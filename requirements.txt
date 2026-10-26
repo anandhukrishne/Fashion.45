@@ -1,0 +1,8 @@
+flask>=3.0.0
+flask-cors>=4.0.0
+requests>=2.31.0
+pandas>=2.0.0
+networkx>=3.0
+customtkinter>=5.2.0
+matplotlib>=3.7.0
+pillow>=10.0.0
