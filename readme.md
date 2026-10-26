@@ -1,6 +1,6 @@
-# Fashion.45 — Desktop E-Commerce & Graph Recommendation Engine
+# Fashion.45 — Desktop E-Commerce & Graph Recommendation App
 
-A standalone desktop e-commerce platform and analytics system built in pure Python. The project uses a normalized SQLite database, a Flask REST API backend, an on-demand NetworkX bipartite graph projection engine for bundle recommendations, and a native CustomTkinter desktop interface with an integrated Admin Management Suite.
+A standalone desktop e-commerce platform and analytics system built in Python. The project uses a normalized SQLite database, a Flask REST API backend, an on-demand NetworkX bipartite graph projection for bundle recommendations, and a CustomTkinter desktop interface with an integrated Admin Management Suite.
 
 ---
 
