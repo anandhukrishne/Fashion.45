@@ -4,7 +4,7 @@ from flask import Flask, jsonify, request
 from flask_cors import CORS
 import pandas as pd
 import networkx as nx
-from database import init_db, DB_NAME
+from database import init_db, DB_NAME, sync_online_catalog
 
 # Auto-initialize database schema and seeds on startup if missing
 init_db()
@@ -33,6 +33,7 @@ def index():
             "/api/analytics/summary",
             "/api/admin/products",
             "/api/admin/orders",
+            "/api/admin/sync-online",
             "/api/order"
         ]
     })
@@ -259,6 +260,25 @@ def admin_get_orders():
         return jsonify({"error": str(e)}), 500
     finally:
         conn.close()
+
+
+@app.route("/api/admin/sync-online", methods=["POST"])
+def admin_sync_online():
+    """Triggers live synchronization with online FakeStore API DBMS."""
+    try:
+        success, message = sync_online_catalog()
+        if success:
+            return jsonify({
+                "status": "success",
+                "message": message
+            }), 200
+        else:
+            return jsonify({
+                "status": "error",
+                "message": message
+            }), 502
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 
 # ----------------- NETWORKX GRAPH ENGINE -----------------

@@ -6,11 +6,11 @@ A standalone desktop e-commerce platform and analytics system built in pure Pyth
 
 ## 🚀 Features
 
-- **Normalized Relational RDBMS (`database.py`):** 3NF relational schema in SQLite enforcing strict foreign keys (`PRAGMA foreign_keys = ON;`) with deterministic baseline seeding (`seed=42`) and image URL support.
-- **RESTful API Backend (`app.py`):** Modular Flask endpoints serving product catalogs, categories, transactional order commits, and graph metrics. Auto-initializes the database on startup.
+- **Normalized Relational RDBMS (`database.py`):** 3NF relational schema in SQLite enforcing strict foreign keys (`PRAGMA foreign_keys = ON;`) dynamically fetched and seeded from the online FakeStore API open DBMS (`https://fakestoreapi.com/products`) with offline resilience and image URL support.
+- **RESTful API Backend (`app.py`):** Modular Flask endpoints serving product catalogs, categories, transactional order commits, and graph metrics. Auto-initializes the database on startup and supports live online DBMS synchronization.
 - **NetworkX Bipartite Graph Engine:** Models transactions as a bipartite graph $B(\text{Orders}, \text{Products})$ and calculates weighted one-mode projections onto products to detect real-time co-purchasing bundles without node collision.
 - **Embedded Network Visualizer:** Native Matplotlib canvas rendering the product co-purchasing network graph inside a top-level popup with automatic memory management (`plt.close(fig)`).
-- **Native Desktop Client (`desktop_app.py`):** Responsive dark-mode interface built with CustomTkinter featuring live category filtering, cart management, atomic checkout, asynchronous image caching (Pillow), and a complete Admin Suite (real-time KPIs, inventory restock, deletion, and transaction logs).
+- **Native Desktop Client (`desktop_app.py`):** Responsive dark-mode interface built with CustomTkinter featuring live category filtering, cart management, atomic checkout, asynchronous image caching (Pillow), and a complete Admin Suite (real-time KPIs, live "Sync Online DBMS" button, inventory restock, deletion, and transaction logs).
 
 ---
 
@@ -69,6 +69,7 @@ python desktop_app.py
 | `GET` | `/api/analytics/summary` | Admin KPIs (revenue, orders, SKUs, inventory units) |
 | `GET` | `/api/admin/orders` | Recent 25 orders with item counts and totals |
 | `POST` | `/api/admin/products` | Add new product to inventory |
+| `POST` | `/api/admin/sync-online` | Live sync catalog from online FakeStore API DBMS |
 | `PUT` | `/api/admin/products/<id>` | Update product stock count or unit price |
 | `DELETE` | `/api/admin/products/<id>` | Delete product and cascade related order items |
 

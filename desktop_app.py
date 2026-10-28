@@ -186,6 +186,7 @@ class Fashion45DesktopApp(ctk.CTk):
             ("Developer Studio:", "45 STUDioS"),
             ("Engineering Lead:", "AnandhuKrishne"),
             ("Version:", "1.0.0 (Release Build)"),
+            ("Online DBMS Source:", "FakeStore API (Live Cloud DBMS)"),
             ("Architecture:", "Two-tier Client / REST API"),
             ("Backend Stack:", "Flask, SQLite3, NetworkX"),
             ("Frontend Stack:", "CustomTkinter, Matplotlib, Pillow"),
@@ -410,11 +411,26 @@ class Fashion45DesktopApp(ctk.CTk):
         inv_box.grid_rowconfigure(1, weight=1)
         inv_box.grid_columnconfigure(0, weight=1)
 
+        inv_header = ctk.CTkFrame(inv_box, fg_color="transparent")
+        inv_header.grid(row=0, column=0, padx=15, pady=10, sticky="ew")
+        inv_header.grid_columnconfigure(0, weight=1)
+
         ctk.CTkLabel(
-            inv_box,
+            inv_header,
             text="Inventory Controls & Restock",
             font=ctk.CTkFont(size=16, weight="bold")
-        ).grid(row=0, column=0, padx=15, pady=10, sticky="w")
+        ).grid(row=0, column=0, sticky="w")
+
+        ctk.CTkButton(
+            inv_header,
+            text="🌐 Sync Online DBMS",
+            width=150,
+            height=28,
+            fg_color="#2980B9",
+            hover_color="#1F618D",
+            font=ctk.CTkFont(size=11, weight="bold"),
+            command=self.admin_sync_online_dbms
+        ).grid(row=0, column=1, sticky="e")
 
         self.admin_inv_scroll = ctk.CTkScrollableFrame(inv_box)
         self.admin_inv_scroll.grid(row=1, column=0, sticky="nsew", padx=15, pady=(0, 15))
@@ -439,7 +455,7 @@ class Fashion45DesktopApp(ctk.CTk):
 
         self.form_cat = ctk.CTkOptionMenu(
             form_box,
-            values=["Streetwear", "Footwear", "Accessories", "Stationery"]
+            values=["Electronics", "Jewelery", "Men's Clothing", "Women's Clothing"]
         )
         self.form_cat.pack(fill="x", padx=15, pady=4)
 
@@ -508,9 +524,16 @@ class Fashion45DesktopApp(ctk.CTk):
 
         def worker():
             try:
-                res = requests.get(url, timeout=3.0)
+                res = requests.get(url, timeout=4.0)
                 if res.status_code == 200:
-                    raw_img = Image.open(io.BytesIO(res.content)).convert("RGB")
+                    img = Image.open(io.BytesIO(res.content))
+                    # Handle transparency cleanly for FakeStore PNGs
+                    if img.mode in ("RGBA", "LA") or (img.mode == "P" and "transparency" in img.info):
+                        bg = Image.new("RGBA", img.size, (255, 255, 255, 255))
+                        bg.alpha_composite(img.convert("RGBA"))
+                        raw_img = bg.convert("RGB")
+                    else:
+                        raw_img = img.convert("RGB")
                     raw_img = raw_img.resize(size, Image.Resampling.LANCZOS)
                     ctk_img = ctk.CTkImage(light_image=raw_img, dark_image=raw_img, size=size)
                     self.image_cache[url] = ctk_img
@@ -830,6 +853,30 @@ class Fashion45DesktopApp(ctk.CTk):
                 self.after(0, lambda: (self.refresh_admin_data(), self.load_products()))
             except Exception as e:
                 self.update_status(f"Delete error: {e}")
+
+        threading.Thread(target=worker, daemon=True).start()
+
+    def admin_sync_online_dbms(self):
+        """Fetches live products from online FakeStore API DBMS and refreshes UI."""
+        self.update_status("Fetching latest catalog from online FakeStore API DBMS...")
+
+        def worker():
+            try:
+                res = requests.post(f"{API_BASE}/admin/sync-online", timeout=12)
+                if res.status_code == 200:
+                    data = res.json()
+                    msg = data.get("message", "Synced online DBMS successfully.")
+                    def on_sync():
+                        self.update_status(f"✓ {msg}")
+                        self.refresh_admin_data()
+                        self.load_categories()
+                        self.load_products()
+                    self.after(0, on_sync)
+                else:
+                    err = res.json().get("message", "Sync failed.")
+                    self.update_status(f"Sync error: {err}")
+            except Exception as e:
+                self.update_status(f"Sync error: {e}")
 
         threading.Thread(target=worker, daemon=True).start()
 
